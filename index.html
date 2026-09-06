@@ -19,10 +19,10 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="S2i Distribuição Industrial">
     <meta property="og:locale" content="pt_BR">
-    <meta property="og:url" content="https://takeiteasy.s2i.com.br/">
+    <meta property="og:url" content="https://s2i.com.br/easyeffect/">
     <meta property="og:title" content="Take it Easy — 06 de outubro, Cuiabá">
     <meta property="og:description" content="Uma noite de inovação, networking e conteúdo no Coco Bambu Cuiabá. Garanta sua vaga.">
-    <meta property="og:image" content="https://takeiteasy.s2i.com.br/src/IMAGENS/takeeasy.jpg">
+    <meta property="og:image" content="https://s2i.com.br/easyeffect/src/IMAGENS/takeeasy.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="675">
     <meta property="og:image:alt" content="Convite do evento Take it Easy">
@@ -31,7 +31,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Take it Easy — 06 de outubro, Cuiabá">
     <meta name="twitter:description" content="Uma noite de inovação, networking e conteúdo no Coco Bambu Cuiabá. Garanta sua vaga.">
-    <meta name="twitter:image" content="https://takeiteasy.s2i.com.br/src/IMAGENS/takeeasy.jpg">
+    <meta name="twitter:image" content="https://s2i.com.br/easyeffect/src/IMAGENS/takeeasy.jpg">
 
 
     <!-- Google Fonts -->
@@ -120,6 +120,34 @@
         /* Acessibilidade: quem pediu menos animação no sistema não recebe o pulo */
         @media (prefers-reduced-motion: reduce) {
             .scroll-arrow { animation: none; }
+        }
+
+        /* Em telas de toque não existe hover: sem isto as fotos ficariam
+           permanentemente em 40% de opacidade e preto e branco no celular. */
+        @media (hover: none) {
+            .ifm-image { opacity: 1; filter: none; }
+        }
+
+        /* ---------- Lightbox da galeria ---------- */
+        body.lb-aberto { overflow: hidden; }
+
+        /* Congela os carrosséis enquanto a foto ampliada está aberta */
+        body.lb-aberto .carousel-track { animation-play-state: paused; }
+
+        @keyframes lb-surgir {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        #lightbox:not(.hidden) { animation: lb-surgir 0.2s ease-out; }
+
+        @keyframes lb-zoom {
+            from { opacity: 0; transform: scale(0.96); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        #lbImg { animation: lb-zoom 0.25s ease-out; }
+
+        @media (prefers-reduced-motion: reduce) {
+            #lightbox:not(.hidden), #lbImg { animation: none; }
         }
     </style>
 </head>
@@ -343,7 +371,161 @@
         <p>&copy; 2026 | S2i Distribuição Industrial. Todos os direitos reservados.</p>
     </footer>
 
+    <!-- ==========================================================
+         Lightbox: abre a foto ampliada por cima do site, com o
+         fundo escurecido. Navega com setas, teclado ou arrastando
+         o dedo. Começa oculto; o JS no rodapé cuida do resto.
+         ========================================================== -->
+    <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center"
+         role="dialog" aria-modal="true" aria-label="Galeria de fotos">
+
+        <div id="lbFundo" class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+
+        <figure class="relative z-10 flex flex-col items-center max-w-[92vw] select-none">
+            <img id="lbImg" src="" alt=""
+                 class="max-w-[92vw] max-h-[78vh] object-contain rounded-lg shadow-2xl">
+            <figcaption id="lbLegenda" class="mt-4 text-sm text-gray-400 text-center"></figcaption>
+        </figure>
+
+        <button id="lbFechar" type="button" aria-label="Fechar"
+                class="absolute top-4 right-4 z-20 w-11 h-11 flex items-center justify-center rounded-full bg-black/60 border border-gray-700 text-white hover:bg-brandGreen hover:text-black transition">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" class="w-5 h-5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <button id="lbAnterior" type="button" aria-label="Imagem anterior"
+                class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center rounded-full bg-black/60 border border-gray-700 text-white hover:bg-brandGreen hover:text-black transition">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+
+        <button id="lbProxima" type="button" aria-label="Próxima imagem"
+                class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center rounded-full bg-black/60 border border-gray-700 text-white hover:bg-brandGreen hover:text-black transition">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </button>
+    </div>
+
     <script>
+        /* ---------- Lightbox da galeria ---------- */
+        (function () {
+            const lb = document.getElementById('lightbox');
+            if (!lb) return;
+
+            const img      = document.getElementById('lbImg');
+            const legenda  = document.getElementById('lbLegenda');
+            const btnFechar   = document.getElementById('lbFechar');
+            const btnAnterior = document.getElementById('lbAnterior');
+            const btnProxima  = document.getElementById('lbProxima');
+            const fundo       = document.getElementById('lbFundo');
+
+            let galeria = [];
+            let indice = 0;
+
+            // Cada carrossel vira uma galeria independente: clicar numa foto de
+            // evento navega só entre fotos de evento, e o mesmo vale para o local.
+            // As imagens aparecem duplicadas no HTML (clones do loop infinito),
+            // então filtramos repetições pelo src para não navegar em círculos.
+            document.querySelectorAll('.carousel-track').forEach(function (track) {
+                const vistos = new Set();
+                const itens = [];
+
+                track.querySelectorAll('img').forEach(function (el) {
+                    if (!vistos.has(el.src)) {
+                        vistos.add(el.src);
+                        itens.push({ src: el.src, alt: el.alt || '' });
+                    }
+                });
+
+                track.querySelectorAll('img').forEach(function (el) {
+                    el.style.cursor = 'zoom-in';
+                    el.addEventListener('click', function () {
+                        galeria = itens;
+                        indice = itens.findIndex(function (i) { return i.src === el.src; });
+                        if (indice < 0) indice = 0;
+                        abrir();
+                    });
+                });
+            });
+
+            function mostrar() {
+                const item = galeria[indice];
+                if (!item) return;
+                img.src = item.src;
+                img.alt = item.alt;
+                legenda.textContent = (item.alt ? item.alt + '  ·  ' : '') +
+                                      (indice + 1) + ' de ' + galeria.length;
+                // Reinicia a animação de zoom a cada troca
+                img.style.animation = 'none';
+                void img.offsetWidth;
+                img.style.animation = '';
+                // Uma foto só não precisa de setas. Uso style.display em vez do
+                // atributo hidden porque a classe .flex do Tailwind o sobrescreveria.
+                const visibilidade = galeria.length > 1 ? '' : 'none';
+                btnAnterior.style.display = visibilidade;
+                btnProxima.style.display  = visibilidade;
+            }
+
+            function abrir() {
+                mostrar();
+                lb.classList.remove('hidden');
+                lb.classList.add('flex');
+                document.body.classList.add('lb-aberto');
+                btnFechar.focus();
+            }
+
+            function fechar() {
+                lb.classList.add('hidden');
+                lb.classList.remove('flex');
+                document.body.classList.remove('lb-aberto');
+                img.src = '';
+            }
+
+            function navegar(passo) {
+                if (!galeria.length) return;
+                indice = (indice + passo + galeria.length) % galeria.length;
+                mostrar();
+            }
+
+            btnFechar.addEventListener('click', fechar);
+            fundo.addEventListener('click', fechar);
+            btnAnterior.addEventListener('click', function () { navegar(-1); });
+            btnProxima.addEventListener('click', function () { navegar(1); });
+
+            // Teclado (computador)
+            document.addEventListener('keydown', function (e) {
+                if (lb.classList.contains('hidden')) return;
+                if (e.key === 'Escape')     fechar();
+                if (e.key === 'ArrowLeft')  navegar(-1);
+                if (e.key === 'ArrowRight') navegar(1);
+            });
+
+            // Arrastar o dedo (celular e navegador do WhatsApp)
+            let toqueX = null, toqueY = null;
+            lb.addEventListener('touchstart', function (e) {
+                toqueX = e.changedTouches[0].clientX;
+                toqueY = e.changedTouches[0].clientY;
+            }, { passive: true });
+
+            lb.addEventListener('touchend', function (e) {
+                if (toqueX === null) return;
+                const dx = e.changedTouches[0].clientX - toqueX;
+                const dy = e.changedTouches[0].clientY - toqueY;
+                // Só conta como swipe lateral se for horizontal o bastante,
+                // senão um scroll diagonal trocaria de foto sem querer.
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+                    navegar(dx < 0 ? 1 : -1);
+                }
+                toqueX = null;
+            }, { passive: true });
+        })();
+
         /* ---------- Indicador de rolagem do banner ---------- */
         (function () {
             const cue = document.getElementById('scrollCue');
