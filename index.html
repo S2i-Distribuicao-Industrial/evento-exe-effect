@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take it Easy - 06 de Outubro</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandGreen: '#3DCD58',
+                        brandDark: '#121212'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(61, 205, 88, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(61, 205, 88, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(61, 205, 88, 0); }
+        }
+        .btn-pulse {
+            animation: pulse-green 2s infinite;
+        }
+
+        .carousel-track {
+            display: flex;
+            width: max-content;
+        }
+        
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); } 
+        }
+        .animate-scroll-left {
+            animation: scroll-left 40s linear infinite;
+        }
+
+        @keyframes scroll-right {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); } 
+        }
+        .animate-scroll-right {
+            animation: scroll-right 30s linear infinite;
+        }
+
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+
+        /* Efeito IFM atualizado com Zoom */
+        .ifm-image {
+            opacity: 0.4;
+            filter: grayscale(100%);
+            transition: all 0.5s ease-in-out;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+        .ifm-image:hover {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.03);
+            z-index: 10;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-inter antialiased min-h-screen overflow-x-hidden">
+
+    <!-- Banner Visual do Topo (Ajustado para não cortar) -->
+    <header class="w-full bg-black flex justify-center">
+        <img src="src/IMAGENS/takeiteasy.png" alt="Convite Visual do Evento Take it Easy" class="w-full h-auto object-contain shadow-lg border-b border-brandGreen/30">
+    </header>
+
+    <!-- Seção: Objetivos do Evento -->
+    <section class="py-16 bg-brandDark/20 border-b border-gray-900">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-12">Objetivos do <span class="text-brandGreen">Evento</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="p-8 border border-gray-800 rounded-xl bg-brandDark/50 group hover:border-brandGreen transition duration-300">
+                    <h3 class="text-2xl font-bold text-white group-hover:text-brandGreen transition duration-300">Networking</h3>
+                    <p class="text-gray-400 mt-4 group-hover:text-gray-200 transition">Conecte-se com parceiros com interesses e negócios em comum.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="p-8 border border-gray-800 rounded-xl bg-brandDark/50 group hover:border-brandGreen transition duration-300">
+                    <h3 class="text-2xl font-bold text-white group-hover:text-brandGreen transition duration-300">Conhecimento</h3>
+                    <p class="text-gray-400 mt-4 group-hover:text-gray-200 transition">Aprenda com especialistas e fique por dentro das tendências do mercado.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="p-8 border border-gray-800 rounded-xl bg-brandDark/50 group hover:border-brandGreen transition duration-300">
+                    <h3 class="text-2xl font-bold text-white group-hover:text-brandGreen transition duration-300">Conexão entre Setores da Indústria</h3>
+                    <p class="text-gray-400 mt-4 group-hover:text-gray-200 transition">Descubra sinergias e oportunidades cruzadas entre diferentes áreas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Principal & Formulário -->
+    <section class="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
+                Take it Easy. <br>
+                <span class="text-brandGreen">Garanta sua Vaga.</span>
+            </h1>
+            <p class="text-gray-400 text-lg mb-8">
+                Junte-se a nós em uma noite de inovação, networking e muito conteúdo.
+            </p>
+            <div class="space-y-4 text-gray-300">
+                <p class="flex items-center gap-3">
+                    <span class="bg-brandDark p-3 rounded-full flex items-center justify-center">
+                        <img src="src/ICONS/calendar.svg" alt="Data" class="w-6 h-6">
+                    </span>
+                    06 de Outubro de 2026
+                </p>
+                <p class="flex items-center gap-3">
+                    <span class="bg-brandDark p-3 rounded-full flex items-center justify-center">
+                        <img src="src/ICONS/clock.svg" alt="Horário" class="w-6 h-6">
+                    </span>
+                    18h às 21h
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulário de Inscrição -->
+        <div class="bg-brandDark p-8 rounded-2xl shadow-xl border border-gray-800 relative z-10">
+            <h2 class="text-2xl font-bold mb-6">Inscreva-se Agora</h2>
+            
+            <form id="formInscricao" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Nome Completo</label>
+                    <input type="text" id="nome" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Empresa</label>
+                        <input type="text" id="empresa" placeholder="Ex: Acme Corp" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Cargo</label>
+                        <input type="text" id="cargo" placeholder="Ex: Diretor" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Telefone de contato</label>
+                    <input type="tel" id="telefone" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">E-mail para contato</label>
+                    <input type="email" id="email" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Como conheceu o evento?</label>
+                    <select id="como_conheceu" required class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition appearance-none">
+                        <option value="" disabled selected>Selecione uma opção</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Indicação">Indicação</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Observações (Opcional)</label>
+                    <textarea id="observacoes" rows="2" class="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brandGreen transition resize-none"></textarea>
+                </div>
+
+                <!-- Honeypot anti-robô: invisível para pessoas, preenchido por bots.
+                     Se vier preenchido, o backend descarta a inscrição silenciosamente. -->
+                <div class="absolute opacity-0 pointer-events-none -left-[9999px]" aria-hidden="true">
+                    <label>Não preencha este campo</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <!-- Consentimento LGPD -->
+                <label class="flex items-start gap-3 text-sm text-gray-400 pt-2 cursor-pointer">
+                    <input type="checkbox" id="consentimento" required class="mt-1 accent-brandGreen w-4 h-4 shrink-0">
+                    <span>Autorizo a S2i Distribuição Industrial a usar meus dados para gerenciar minha inscrição e me comunicar sobre este evento.</span>
+                </label>
+
+                <button type="submit" id="btnSubmit" class="w-full bg-brandGreen text-black font-bold text-lg py-4 rounded-lg mt-6 hover:bg-green-500 transition btn-pulse cursor-pointer">
+                    Quero me inscrever!
+                </button>
+            </form>
+
+            <div id="msgSucesso" class="hidden absolute inset-0 bg-brandDark rounded-2xl flex flex-col items-center justify-center text-center p-8 border border-brandGreen z-20">
+                <div class="mb-4">
+                    <img src="src/ICONS/check.svg" alt="Sucesso" class="w-16 h-16">
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Inscrição realizada!</h3>
+                <p class="text-gray-400">Enviamos a confirmação para o seu e-mail. Nos vemos em breve!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carrossel: Últimos Eventos -->
+    <section class="py-12 overflow-hidden border-t border-gray-900 bg-brandDark/30">
+        <h2 class="text-3xl font-bold text-center mb-8">Confira os nossos <span class="text-brandGreen">últimos eventos</span></h2>
+        
+        <div class="relative w-full">
+            <div class="carousel-track animate-scroll-left">
+                <img src="src/IMAGENS/foto1.jpeg" alt="Evento 1" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto2.jpeg" alt="Evento 2" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto3.jpeg" alt="Evento 3" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto4.jpeg" alt="Evento 4" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto5.jpeg" alt="Evento 5" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto6.jpeg" alt="Evento 6" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto7.jpeg" alt="Evento 7" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                
+                <!-- Clone para o loop -->
+                <img src="src/IMAGENS/foto1.jpeg" alt="Evento 1" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto2.jpeg" alt="Evento 2" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto3.jpeg" alt="Evento 3" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto4.jpeg" alt="Evento 4" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto5.jpeg" alt="Evento 5" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto6.jpeg" alt="Evento 6" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/foto7.jpeg" alt="Evento 7" class="ifm-image w-96 h-64 object-cover rounded-md border border-gray-700">
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Local & Como Chegar -->
+    <section class="py-16 overflow-hidden">
+        <h2 class="text-3xl font-bold text-center mb-8">Conheça o <span class="text-brandGreen">Local</span></h2>
+        
+        <div class="relative w-full mb-12">
+            <div class="carousel-track animate-scroll-right">
+                <img src="src/IMAGENS/local1.png" alt="Local 1" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local2.png" alt="Local 2" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local3.png" alt="Local 3" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local4.png" alt="Local 4" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                
+                <!-- Clone -->
+                <img src="src/IMAGENS/local1.png" alt="Local 1" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local2.png" alt="Local 2" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local3.png" alt="Local 3" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+                <img src="src/IMAGENS/local4.png" alt="Local 4" class="ifm-image w-[28rem] h-72 object-cover rounded-md border border-gray-700">
+            </div>
+        </div>
+
+        <div class="max-w-3xl mx-auto text-center px-6 bg-brandDark/50 p-8 rounded-2xl border border-gray-800">
+            <div class="mb-6 flex justify-center">
+                <img src="src/ICONS/pin.svg" alt="Localização" class="w-10 h-10">
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Coco Bambu - Cuiabá MT</h3>
+            <p class="text-gray-400 text-lg mb-8">
+                Avenida Miguel Sutil, 9300 - LUC 1001 <br>
+                Shopping Estação Cuiabá
+            </p>
+            
+            <a href="https://www.google.com/maps/search/?api=1&query=Coco+Bambu+-+Cuiab%C3%A1+MT,+Avenida+Miguel+Sutil,+9300+-+LUC+1001,+Shopping+Esta%C3%A7%C3%A3o+Cuiab%C3%A1" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="inline-flex items-center justify-center gap-2 bg-white text-black font-bold text-lg py-3 px-8 rounded-lg hover:bg-brandGreen transition duration-300">
+                <img src="src/ICONS/map.svg" alt="Mapa" class="w-5 h-5"> Como chegar
+            </a>
+        </div>
+    </section>
+
+    <footer class="bg-black py-8 border-t border-gray-900 text-center text-gray-500 text-sm">
+        <p>&copy; 2026 | S2i Distribuição Industrial. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMHX0FG9_f1hDKIMJNYKZ3Tyu5zPM2r1OpGUn8Q8Du1_kYriOi-PVu8tpMcDN2Hc_CaQ/exec';
+
+        document.getElementById('formInscricao').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerText = 'Enviando...';
+            btnSubmit.disabled = true;
+            btnSubmit.classList.remove('btn-pulse');
+
+            const formData = {
+                nome: document.getElementById('nome').value,
+                empresa: document.getElementById('empresa').value,
+                cargo: document.getElementById('cargo').value,
+                telefone: document.getElementById('telefone').value,
+                email: document.getElementById('email').value,
+                como_conheceu: document.getElementById('como_conheceu').value,
+                observacoes: document.getElementById('observacoes').value,
+                website: document.getElementById('website').value // honeypot
+            };
+
+            // Sem 'no-cors': assim conseguimos ler a resposta do Apps Script e só
+            // mostrar "Inscrição realizada" quando ela foi de fato gravada.
+            // O Content-Type text/plain evita o preflight CORS.
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.status !== 'sucesso') {
+                    throw new Error(dados.mensagem || 'Falha ao registrar a inscrição.');
+                }
+                document.getElementById('formInscricao').style.visibility = 'hidden';
+                document.getElementById('msgSucesso').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert(error.message || 'Houve um erro ao realizar a inscrição. Tente novamente.');
+                btnSubmit.innerText = 'Quero me inscrever!';
+                btnSubmit.disabled = false;
+                btnSubmit.classList.add('btn-pulse');
+            });
+        });
+    </script>
+</body>
+</html>

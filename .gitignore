@@ -1,0 +1,69 @@
+# =============================================================================
+# Versões anteriores / rascunhos
+# Mantidos no disco para consulta, mas fora do repositório: publicar um deles
+# por engano derrubaria as correções aplicadas no index.html atual.
+# =============================================================================
+versoes_anteriores/
+lastest_version/
+teste*.html
+*.bak
+*.old
+*_old.*
+*copia*.html
+*backup*
+
+# =============================================================================
+# Segredos e configuração local
+# O Codigo.gs versionado deve conter apenas placeholders. Nunca commite
+# e-mails de organizadores, chaves de reCAPTCHA ou IDs privados.
+# =============================================================================
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials.json
+client_secret*.json
+service-account*.json
+.clasprc.json
+
+# =============================================================================
+# Sistema operacional
+# =============================================================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+
+# =============================================================================
+# Editores
+# =============================================================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# Node / ferramentas (caso um build de Tailwind seja adicionado depois)
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json.bak
+dist/
+.cache/
+
+# =============================================================================
+# Dados de inscritos
+# A lista de participantes contém dados pessoais (LGPD) e vive na planilha.
+# Nenhuma exportação deve entrar no repositório.
+# =============================================================================
+*.csv
+*.xlsx
+inscritos*
+participantes*
+*.gs
