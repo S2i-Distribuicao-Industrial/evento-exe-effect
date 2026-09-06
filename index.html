@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The EasyEffect - 06 de Outubro</title>
+    <title>Take it Easy - 06 de Outubro</title>
     <link rel="shortcut icon" type="image/x-icon" href="src/ICONS/icon.png">
 
 
@@ -81,16 +81,52 @@
             z-index: 10;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
+        /* Indicador de rolagem sobre o banner */
+        @keyframes bounce-down {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(10px); }
+        }
+        .scroll-arrow {
+            animation: bounce-down 1.6s ease-in-out infinite;
+        }
+
+        /* Acessibilidade: quem pediu menos animação no sistema não recebe o pulo */
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-arrow { animation: none; }
+        }
     </style>
 </head>
 <body class="bg-black text-white font-inter antialiased min-h-screen overflow-x-hidden">
 
     <!-- Banner Visual do Topo (Ajustado para não cortar) -->
-    <header class="w-full bg-black flex justify-center">
-    <img src="src/IMAGENS/theeasyeffect.png"
-         alt="Convite Visual do Evento The EasyEffect"
+    <header class="relative w-full bg-black flex justify-center">
+    <img src="src/IMAGENS/takeeasy.png"
+         alt="Convite Visual do Evento Take it Easy"
          class="w-full h-auto object-contain shadow-lg">
+
     </header>
+
+    <!-- Indicador de rolagem: fica fixo na base da primeira dobra (o banner pode
+         ser mais alto que a tela) e desaparece assim que a pessoa começa a rolar. -->
+    <div id="scrollCueWrap" class="fixed inset-x-0 bottom-0 z-30 flex justify-center transition-opacity duration-500">
+        <!-- Degradê para o indicador ficar legível sobre qualquer parte da imagem -->
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+
+        <a href="#inscricao" id="scrollCue"
+           aria-label="Ir para o formulário de inscrição"
+           class="group relative flex flex-col items-center gap-2 px-6 pb-5 cursor-pointer">
+            <span class="text-[11px] md:text-xs font-semibold uppercase tracking-[0.2em] text-white/80 group-hover:text-brandGreen transition-colors">
+                Mover para baixo
+            </span>
+            <span class="scroll-arrow flex items-center justify-center w-11 h-11 rounded-full border-2 border-brandGreen bg-black/50 group-hover:bg-brandGreen transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                     class="w-5 h-5 text-brandGreen group-hover:text-black transition-colors">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </span>
+        </a>
+    </div>
 
     <!-- Seção: Objetivos do Evento -->
     <section class="py-16 bg-brandDark/20 border-b border-gray-900">
@@ -120,7 +156,7 @@
     <section class="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
-                The EasyEffect. <br>
+                Take it Easy. <br>
                 <span class="text-brandGreen">Garanta sua Vaga.</span>
             </h1>
             <p class="text-gray-400 text-lg mb-8">
@@ -143,7 +179,7 @@
         </div>
 
         <!-- Formulário de Inscrição -->
-        <div class="bg-brandDark p-8 rounded-2xl shadow-xl border border-gray-800 relative z-10">
+        <div id="inscricao" class="scroll-mt-6 bg-brandDark p-8 rounded-2xl shadow-xl border border-gray-800 relative z-10">
             <h2 class="text-2xl font-bold mb-6">Inscreva-se Agora</h2>
             
             <form id="formInscricao" class="space-y-4">
@@ -281,7 +317,31 @@
     </footer>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkMS_4ApsG7fn_UeVRUvdhbf0Yc0h5CMUwDiK5jvdCb2_PksLupNiKKT2Qe77VD16-pQ/exec';
+        /* ---------- Indicador de rolagem do banner ---------- */
+        (function () {
+            const cue = document.getElementById('scrollCue');
+            const alvo = document.getElementById('inscricao');
+            if (!cue || !alvo) return;
+
+            // Rola suavemente até o formulário e já deixa o cursor no primeiro campo.
+            cue.addEventListener('click', function (e) {
+                e.preventDefault();
+                alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setTimeout(function () {
+                    const primeiroCampo = document.getElementById('nome');
+                    if (primeiroCampo) primeiroCampo.focus({ preventScroll: true });
+                }, 700);
+            });
+
+            // Some assim que a pessoa começa a rolar: já cumpriu a função.
+            window.addEventListener('scroll', function () {
+                const escondido = window.scrollY > 120;
+                cue.style.opacity = escondido ? '0' : '1';
+                cue.style.pointerEvents = escondido ? 'none' : 'auto';
+            }, { passive: true });
+        })();
+
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk7DdvcEDZ7bjIMA1PQmi7Hi42HIzuO5LxHmUj_QPC27hkY9rl_9gjeUQPa4mnecAP/exec';
 
         document.getElementById('formInscricao').addEventListener('submit', function(e) {
             e.preventDefault();
