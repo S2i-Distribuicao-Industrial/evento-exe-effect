@@ -159,10 +159,29 @@ mudança de implantação.
 
 - [ ] **Nome divergente**: a página exibe "Take it Easy" e o `NOME_EVENTO` do backend está
       como "The EasyEffect". Os e-mails saem com nome diferente do site.
-- [ ] **Peso das imagens**: `src/IMAGENS/` soma ~9,5 MB, com PNGs de até 2 MB. Converter
-      para JPEG/WebP a 1600px reduziria a página para menos de 1,5 MB.
-- [ ] **Imagem de compartilhamento**: `takeeasy.png` tem 1,6 MB. O WhatsApp costuma ignorar
-      prévias acima de ~300 KB. Gerar um `og-image.jpg` de 1200×630 abaixo desse limite.
+- [ ] **Peso das fotos**: as fotos de eventos e do local em `src/IMAGENS/` ainda somam
+      ~8 MB, com PNGs de até 2 MB. Converter para JPEG q90 reduziria bastante.
+- [x] **Banner e imagem de compartilhamento** — resolvido. Ver seção *Imagens* abaixo.
+
+## Imagens
+
+O banner tem três arquivos, com papéis distintos:
+
+| Arquivo | Uso | Tamanho |
+|---|---|---|
+| `takeeasy.png` | **Mestre.** Original sem perdas, não usado pela página | 1,6 MB |
+| `takeeasy.jpg` | Banner exibido no site | 276 KB |
+| `og-takeeasy.jpg` | Prévia ao compartilhar o link (1200×675) | 173 KB |
+
+Ao regerar, **sempre parta do `takeeasy.png`**. Recomprimir um JPEG já comprimido acumula
+perda de geração — o erro do passo anterior é tratado como detalhe legítimo e preservado.
+
+Parâmetros usados: `quality=90`, `subsampling=0`, `optimize=True`, `progressive=True`.
+
+O `subsampling=0` (4:4:4) é o ponto crítico. Compressores usam 4:2:0 por padrão, que
+descarta 3/4 da informação de cor — imperceptível em fotografia, mas destrutivo em texto
+e áreas de cor chapada, que é exatamente do que um convite gráfico é feito. Desligar custa
+~20% de tamanho e reduz o erro em 35%.
 - [ ] **Tailwind via CDN**: a build de desenvolvimento é desaconselhada em produção pelo
       próprio projeto. Gerar o CSS e servir localmente.
 - [ ] **Limpar linhas de teste** da aba `Inscrições` antes da divulgação.
