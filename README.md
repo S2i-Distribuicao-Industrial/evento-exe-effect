@@ -79,6 +79,32 @@ Todas as constantes ficam no objeto `CONFIG`, no topo do arquivo:
 > As `chave` de `CAMPOS` precisam bater **exatamente** com os `id` dos campos no `index.html`.
 > Se renomear um campo em um lado, renomeie no outro — senão a coluna chega vazia, sem erro visível.
 
+### Cancelamento de inscrição
+
+Todo e-mail de confirmação traz um botão vermelho **"Cancelar minha inscrição"**, que
+aponta para `<URL do Web App>?acao=cancelar&id=<UUID da inscrição>`.
+
+O fluxo tem **duas etapas de propósito**:
+
+1. O link abre uma página pedindo confirmação — ele não cancela nada sozinho.
+2. O botão vermelho dessa página chama `cancelarInscricao(id)` via `google.script.run`.
+
+A separação existe porque clientes de e-mail e antivírus **abrem os links das mensagens**
+para inspecioná-los. Um GET que apagasse dados direto seria disparado por esses robôs, e a
+pessoa perderia a inscrição sem ter clicado em nada.
+
+O **UUID da coluna `ID` é a credencial**. Só quem recebeu o e-mail o conhece, e ele é
+impossível de adivinhar. É por isso que o cancelamento nunca aceita e-mail como
+identificador: qualquer um poderia cancelar a inscrição alheia sabendo só o endereço.
+
+Ao confirmar, o script apaga da aba `Inscrições` a linha daquele ID **e todas as demais com
+o mesmo e-mail** (as `Substituída`, de reinscrições anteriores), e avisa o
+`EMAIL_REPRESENTANTE` — senão uma linha sumiria da planilha sem explicação.
+
+> ⚠️ A remoção é definitiva. Não fica registro de que a pessoa cancelou, nem de quantos
+> cancelamentos houve. Se quiser manter histórico, a alternativa é mover a linha para uma
+> aba `Cancelados` em vez de apagar.
+
 ### Publicar alterações do backend
 
 **Implantar → Gerenciar implantações → ✏️ (editar) → Versão: Nova versão → Implantar**
