@@ -11,6 +11,11 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
 
+    <!-- Abre as conexoes com o Apps Script (e o dominio para onde ele
+         redireciona a resposta) enquanto a pagina ainda carrega. -->
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -83,13 +88,62 @@
         .btn-secundario:hover { text-decoration: underline; }
         .erro { color: #FF8B97; font-size: 14px; margin: 16px 0 0; }
         [hidden] { display: none !important; }
+
+        /* ---------- Carregando ---------- */
+        @keyframes girar { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #3DCD58;
+            border-radius: 50%;
+            animation: girar 0.8s linear infinite;
+        }
+        .spinner-grande { width: 36px; height: 36px; border-width: 3px; }
+        .carregando-inicial {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0 4px;
+        }
+        .carregando-inicial p { margin: 0; }
+        .status-carregando {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #232323;
+            color: #8A8A85;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .btn-perigo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-perigo .spinner { display: none; border-color: rgba(255, 255, 255, 0.3); border-top-color: #FFFFFF; }
+        .btn-perigo.carregando .spinner { display: inline-block; }
+
+        /* Quem pediu menos animacao ainda precisa saber que algo esta
+           acontecendo: o giro fica mais lento em vez de sumir. */
+        @media (prefers-reduced-motion: reduce) {
+            .spinner { animation-duration: 2.4s; }
+        }
     </style>
 </head>
 <body>
     <main class="cartao">
         <div class="marca">Take it Easy · 06/10</div>
 
-        <section id="estadoCarregando">
+        <section id="estadoCarregando" class="carregando-inicial" role="status">
+            <span class="spinner spinner-grande" aria-hidden="true"></span>
             <p>Carregando sua inscrição…</p>
         </section>
 
@@ -100,12 +154,19 @@
         </section>
 
         <section id="estadoConfirmar" hidden>
+            <div id="statusConsulta" class="status-carregando" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                Carregando…
+            </div>
             <h1>Cancelar presença?</h1>
             <p>Olá<span id="nome"></span>. Você está prestes a cancelar sua inscrição no
                <strong>Take it Easy</strong>, em 06 de outubro de 2026, às 18h.</p>
             <p class="aviso">Sua vaga será liberada para alguém da lista de espera. Esta ação não
                pode ser desfeita.</p>
-            <button id="btnCancelar" class="btn-perigo" type="button">Confirmar cancelamento</button>
+            <button id="btnCancelar" class="btn-perigo" type="button">
+                <span class="spinner" aria-hidden="true"></span>
+                <span id="btnTexto">Confirmar cancelamento</span>
+            </button>
             <p id="msgErro" class="erro" hidden></p>
             <a class="btn-secundario" href="/">Manter minha inscrição</a>
         </section>
@@ -124,9 +185,19 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHMB94_yk1X8VFVfOau02rtsx8gXBTgydSUYZN-SSglM6q5_nOgyhN4mAPIT5EeRQD2A/exec';
         const REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-        const id = (new URLSearchParams(location.search).get('id') || '').trim();
+        // O ID vem no link do e-mail. Assim que e lido, sai da barra de endereco
+        // (fica so /cancelar) e vai para a sessionStorage, para sobreviver a um F5.
+        const CHAVE_SESSAO = 'cancelar_id';
+        let id = (new URLSearchParams(location.search).get('id') || '').trim();
+        try {
+            if (id) sessionStorage.setItem(CHAVE_SESSAO, id);
+            else id = sessionStorage.getItem(CHAVE_SESSAO) || '';
+        } catch (e) { /* navegacao privada sem storage: segue com o que veio na URL */ }
+        if (location.search) history.replaceState(null, '', location.pathname);
 
+        let estadoAtual = 'estadoCarregando';
         function mostrar(estado) {
+            estadoAtual = estado;
             ['estadoCarregando', 'estadoInvalido', 'estadoConfirmar', 'estadoCancelado']
                 .forEach(function (s) { document.getElementById(s).hidden = (s !== estado); });
         }
@@ -134,28 +205,39 @@
         // Abrir o link so CONSULTA. Clientes de e-mail e antivirus abrem os
         // links das mensagens para inspecionar; se abrir ja cancelasse, esses
         // robos cancelariam a inscricao sem a pessoa ter clicado em nada.
+        //
+        // O Apps Script leva de 1 a 4 s para responder, entao a confirmacao
+        // aparece na hora e o nome entra quando a consulta chegar. Se a
+        // inscricao nao existir mais, a tela troca para "nao encontrada".
         if (!REGEX_UUID.test(id)) {
             mostrar('estadoInvalido');
         } else {
+            mostrar('estadoConfirmar');
             fetch(SCRIPT_URL + '?acao=consultar&id=' + encodeURIComponent(id))
                 .then(function (r) { return r.json(); })
                 .then(function (dados) {
-                    if (dados.status !== 'ok') { mostrar('estadoInvalido'); return; }
+                    if (estadoAtual !== 'estadoConfirmar' || btn.disabled) return; // ja clicou
+                    if (dados.status === 'nao_encontrada') { mostrar('estadoInvalido'); return; }
                     if (dados.nome) document.getElementById('nome').textContent = ', ' + dados.nome;
-                    mostrar('estadoConfirmar');
                 })
-                .catch(function () {
-                    // Sem conexao com o servidor: ainda deixa tentar cancelar.
-                    mostrar('estadoConfirmar');
-                });
+                .catch(function () { /* sem o nome, a confirmacao continua funcionando */ })
+                .finally(function () { statusConsulta.hidden = true; });
         }
 
+        const statusConsulta = document.getElementById('statusConsulta');
         const btn = document.getElementById('btnCancelar');
+        const btnTexto = document.getElementById('btnTexto');
         const msgErro = document.getElementById('msgErro');
 
+        function carregandoBotao(ligado) {
+            btn.disabled = ligado;
+            btn.classList.toggle('carregando', ligado);
+            btnTexto.textContent = ligado ? 'Cancelando…' : 'Confirmar cancelamento';
+        }
+
         btn.addEventListener('click', function () {
-            btn.disabled = true;
-            btn.textContent = 'Cancelando…';
+            carregandoBotao(true);
+            statusConsulta.hidden = true; // o giro do botao passa a ser o indicador
             msgErro.hidden = true;
 
             // text/plain evita o preflight CORS, como no formulario do index.html.
@@ -167,11 +249,11 @@
                 .then(function (r) { return r.json(); })
                 .then(function (dados) {
                     if (dados.status !== 'sucesso') throw new Error(dados.mensagem);
+                    try { sessionStorage.removeItem(CHAVE_SESSAO); } catch (e) {}
                     mostrar('estadoCancelado');
                 })
                 .catch(function (erro) {
-                    btn.disabled = false;
-                    btn.textContent = 'Confirmar cancelamento';
+                    carregandoBotao(false);
                     msgErro.textContent = (erro && erro.message) || 'Erro de conexão. Tente novamente.';
                     msgErro.hidden = false;
                 });
