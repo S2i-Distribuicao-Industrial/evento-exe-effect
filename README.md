@@ -35,7 +35,9 @@ publicado como *Web App*, e a "base de dados" é uma aba de planilha.
 ```
 .
 ├── index.html          Página completa: HTML, CSS (Tailwind CDN) e JS inline
-├── Codigo.gs           Cópia local do backend (NÃO versionado — ver abaixo)
+├── cancelar.html       Página de cancelamento (takeiteasy.s2i.com.br/cancelar?id=…)
+├── Codigo.gs           Backend: inscrição, cancelamento e e-mails (NÃO versionado — ver abaixo)
+├── Lembretes.gs        Backend: lembrete pré-evento + modos teste/produção (NÃO versionado)
 ├── src/
 │   ├── IMAGENS/        Banner, fotos de eventos anteriores e do local
 │   └── ICONS/          Ícones SVG e favicon
@@ -43,11 +45,14 @@ publicado como *Web App*, e a "base de dados" é uma aba de planilha.
 └── README.md
 ```
 
-### Por que o `Codigo.gs` não está no repositório
+### Por que os `.gs` não estão no repositório
 
-O `.gitignore` exclui `*.gs`. O arquivo local serve como backup e referência, mas
-**a fonte da verdade é o editor do Apps Script**, onde ele roda de fato. O arquivo
-também contém o e-mail do organizador, que não deve ficar exposto no repositório.
+O `.gitignore` exclui `*.gs`. Os arquivos locais servem como backup e referência, mas
+**a fonte da verdade é o editor do Apps Script**, onde eles rodam de fato. Eles
+também contêm e-mails internos, que não devem ficar expostos no repositório.
+
+Os dois arquivos vivem **no mesmo projeto do Apps Script** e compartilham o escopo global
+(`Lembretes.gs` usa o `CONFIG` e as funções do `Codigo.gs`).
 
 Ao alterar o backend, altere no editor do Apps Script — e, se quiser manter o backup
 em dia, replique no arquivo local.
@@ -81,13 +86,20 @@ Todas as constantes ficam no objeto `CONFIG`, no topo do arquivo:
 
 ### Cancelamento de inscrição
 
-Todo e-mail de confirmação traz um botão vermelho **"Cancelar minha inscrição"**, que
-aponta para `<URL do Web App>?acao=cancelar&id=<UUID da inscrição>`.
+Os e-mails de confirmação e de lembrete trazem um botão vermelho **"Cancelar minha inscrição"**,
+que aponta para `https://takeiteasy.s2i.com.br/cancelar?id=<UUID da inscrição>`
+(`CONFIG.URL_CANCELAMENTO`). A página `cancelar.html` é estática e conversa com o Apps Script
+pelo mesmo `SCRIPT_URL` do formulário — se a implantação mudar, atualize os dois arquivos.
 
 O fluxo tem **duas etapas de propósito**:
 
-1. O link abre uma página pedindo confirmação — ele não cancela nada sozinho.
-2. O botão vermelho dessa página chama `cancelarInscricao(id)` via `google.script.run`.
+1. Abrir o link só **consulta** (`GET ?acao=consultar&id=…`, que devolve apenas o primeiro nome).
+   Nada é apagado.
+2. O botão **Confirmar cancelamento** envia `POST {acao: "cancelar", id}`, que chama
+   `cancelarInscricao(id)`.
+
+Links antigos no formato `<URL do Web App>?acao=cancelar&id=…` (e-mails de confirmação enviados
+antes da `cancelar.html`) continuam funcionando: abrem a página servida pelo próprio Web App.
 
 A separação existe porque clientes de e-mail e antivírus **abrem os links das mensagens**
 para inspecioná-los. Um GET que apagasse dados direto seria disparado por esses robôs, e a
@@ -98,8 +110,11 @@ impossível de adivinhar. É por isso que o cancelamento nunca aceita e-mail com
 identificador: qualquer um poderia cancelar a inscrição alheia sabendo só o endereço.
 
 Ao confirmar, o script apaga da aba `Inscrições` a linha daquele ID **e todas as demais com
-o mesmo e-mail** (as `Substituída`, de reinscrições anteriores), e avisa o
-`EMAIL_REPRESENTANTE` — senão uma linha sumiria da planilha sem explicação.
+o mesmo e-mail** (as `Substituída`, de reinscrições anteriores), e avisa o marketing
+(`EMAIL_MARKETING`, ver *Lembrete pré-evento*) — senão uma linha sumiria da planilha sem
+explicação. O aviso traz nome, e-mail, telefone, empresa e quantas inscrições ativas restaram,
+para o marketing saber quando chamar alguém da lista de espera. Sai da conta que executa o
+script (a "conta logada").
 
 > ⚠️ A remoção é definitiva. Não fica registro de que a pessoa cancelou, nem de quantos
 > cancelamentos houve. Se quiser manter histórico, a alternativa é mover a linha para uma
@@ -111,6 +126,45 @@ o mesmo e-mail** (as `Substituída`, de reinscrições anteriores), e avisa o
 
 Use sempre a implantação **existente**. "Nova implantação" gera uma URL `/exec` diferente
 e quebra o formulário até você atualizar o `SCRIPT_URL` no `index.html`.
+
+---
+
+## Lembrete pré-evento
+
+`Lembretes.gs` envia aos inscritos o lembrete "faltam N dias", com o botão **Cancelar minha
+inscrição** (o mesmo fluxo de duas etapas descrito acima). O "N" é calculado a partir de
+`DATA_EVENTO_ISO` no dia do envio, então a contagem nunca sai errada.
+
+Com o `Lembretes.gs` aberto no editor, escolha a função no menu ao lado de **Executar**.
+Não é preciso editar nada no código:
+
+| Função | Envia para |
+|---|---|
+| `teste1_enviarParaMeuEmail` | `EMAIL_TESTE_INTERNO` (victor.alves@s2i.com.br) |
+| `teste2_enviarParaEmailPessoal` | `EMAIL_TESTE_EXTERNO` (victorfreire78965@gmail.com) |
+| `envio1_simularEmMassa` | ninguém: só lista no log quem receberia |
+| `envio2_enviarEmMassa` | todos os inscritos `Ativa` da planilha |
+
+Os e-mails saem da conta que clica em **Executar**.
+
+Os testes criam uma linha `TESTE Lembrete` na planilha, então o cancelamento é real: ao
+confirmar, a linha some de fato. O aviso de cancelamento vai para `EMAIL_MARKETING`, exceto
+quando a linha cancelada é de teste (nome começando com `TESTE`), que avisa só o
+`EMAIL_TESTE_INTERNO` com assunto `[TESTE]`.
+
+### Proteções
+
+- **Sem reenvio.** Em produção, cada envio é carimbado na coluna `Lembrete enviado` (criada
+  sozinha). Rodar de novo só alcança quem ainda não recebeu — também serve para retomar uma
+  execução interrompida.
+- **Só `Ativa`, um por e-mail, sem testes.** Linhas `Substituída`, e-mails duplicados e linhas
+  de teste esquecidas (`TESTE…`, `LINHA DE DIAGNOSTICO`, `@example.com`) são ignorados.
+- **Cota.** Aborta antes de enviar se `MailApp.getRemainingDailyQuota()` for menor que a lista
+  (100/dia em conta Gmail comum, 1.500 em Workspace).
+- **E-mail de teste que é de inscrito real** aborta a execução: o cancelamento de teste
+  apagaria os dados dele.
+- **Evento hoje ou passado** não envia.
+- **Nada falha em silêncio.** Todo impedimento aparece como erro vermelho no log do editor.
 
 ---
 

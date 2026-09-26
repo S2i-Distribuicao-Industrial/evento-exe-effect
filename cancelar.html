@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelar inscrição - Take it Easy</title>
+    <link rel="shortcut icon" type="image/x-icon" href="src/ICONS/icon.png">
+
+    <!-- Pagina pessoal (o link carrega o ID da inscricao): fora dos buscadores,
+         e sem mandar a URL com o ID como Referer para Google Fonts. -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background: #121212;
+            color: #FFFFFF;
+            font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        .cartao {
+            width: 100%;
+            max-width: 460px;
+            background: #1B1B1B;
+            border: 1px solid #2A2A2A;
+            border-radius: 16px;
+            padding: 32px 28px;
+            text-align: center;
+        }
+        .marca {
+            color: #3DCD58;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 { font-size: 22px; font-weight: 800; margin: 0 0 16px; }
+        p { color: #B5B5B0; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+        p strong { color: #FFFFFF; }
+        .aviso {
+            background: #2A1216;
+            border: 1px solid #7A1420;
+            color: #FFC9CF;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+        .btn-perigo {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            border: 0;
+            border-radius: 10px;
+            background: #D92D3F;
+            color: #FFFFFF;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-perigo:hover { background: #B92131; }
+        .btn-perigo:disabled { background: #4A4A4A; cursor: default; }
+        .btn-secundario {
+            display: inline-block;
+            margin-top: 18px;
+            color: #3DCD58;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .btn-secundario:hover { text-decoration: underline; }
+        .erro { color: #FF8B97; font-size: 14px; margin: 16px 0 0; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <main class="cartao">
+        <div class="marca">Take it Easy · 06/10</div>
+
+        <section id="estadoCarregando">
+            <p>Carregando sua inscrição…</p>
+        </section>
+
+        <section id="estadoInvalido" hidden>
+            <h1>Inscrição não encontrada</h1>
+            <p>Este link não corresponde a nenhuma inscrição ativa. Ela pode já ter sido cancelada.</p>
+            <a class="btn-secundario" href="/">Ir para a página do evento</a>
+        </section>
+
+        <section id="estadoConfirmar" hidden>
+            <h1>Cancelar presença?</h1>
+            <p>Olá<span id="nome"></span>. Você está prestes a cancelar sua inscrição no
+               <strong>Take it Easy</strong>, em 06 de outubro de 2026, às 18h.</p>
+            <p class="aviso">Sua vaga será liberada para alguém da lista de espera. Esta ação não
+               pode ser desfeita.</p>
+            <button id="btnCancelar" class="btn-perigo" type="button">Confirmar cancelamento</button>
+            <p id="msgErro" class="erro" hidden></p>
+            <a class="btn-secundario" href="/">Manter minha inscrição</a>
+        </section>
+
+        <section id="estadoCancelado" hidden>
+            <h1>Inscrição cancelada</h1>
+            <p>Obrigado por nos avisar. Sua vaga será oferecida a quem está na lista de espera.
+               Sentiremos sua falta!</p>
+            <a class="btn-secundario" href="/">Ir para a página do evento</a>
+        </section>
+    </main>
+
+    <script>
+        // Mesma URL do index.html. Se a implantacao do Apps Script mudar,
+        // atualize os dois arquivos.
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHMB94_yk1X8VFVfOau02rtsx8gXBTgydSUYZN-SSglM6q5_nOgyhN4mAPIT5EeRQD2A/exec';
+        const REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+        const id = (new URLSearchParams(location.search).get('id') || '').trim();
+
+        function mostrar(estado) {
+            ['estadoCarregando', 'estadoInvalido', 'estadoConfirmar', 'estadoCancelado']
+                .forEach(function (s) { document.getElementById(s).hidden = (s !== estado); });
+        }
+
+        // Abrir o link so CONSULTA. Clientes de e-mail e antivirus abrem os
+        // links das mensagens para inspecionar; se abrir ja cancelasse, esses
+        // robos cancelariam a inscricao sem a pessoa ter clicado em nada.
+        if (!REGEX_UUID.test(id)) {
+            mostrar('estadoInvalido');
+        } else {
+            fetch(SCRIPT_URL + '?acao=consultar&id=' + encodeURIComponent(id))
+                .then(function (r) { return r.json(); })
+                .then(function (dados) {
+                    if (dados.status !== 'ok') { mostrar('estadoInvalido'); return; }
+                    if (dados.nome) document.getElementById('nome').textContent = ', ' + dados.nome;
+                    mostrar('estadoConfirmar');
+                })
+                .catch(function () {
+                    // Sem conexao com o servidor: ainda deixa tentar cancelar.
+                    mostrar('estadoConfirmar');
+                });
+        }
+
+        const btn = document.getElementById('btnCancelar');
+        const msgErro = document.getElementById('msgErro');
+
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            btn.textContent = 'Cancelando…';
+            msgErro.hidden = true;
+
+            // text/plain evita o preflight CORS, como no formulario do index.html.
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: 'cancelar', id: id })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (dados) {
+                    if (dados.status !== 'sucesso') throw new Error(dados.mensagem);
+                    mostrar('estadoCancelado');
+                })
+                .catch(function (erro) {
+                    btn.disabled = false;
+                    btn.textContent = 'Confirmar cancelamento';
+                    msgErro.textContent = (erro && erro.message) || 'Erro de conexão. Tente novamente.';
+                    msgErro.hidden = false;
+                });
+        });
+    </script>
+</body>
+</html>
