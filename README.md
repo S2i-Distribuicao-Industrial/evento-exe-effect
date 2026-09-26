@@ -245,7 +245,7 @@ mudança de implantação.
 ## Pendências
 
 - [ ] **Nome divergente**: a página exibe "Take it Easy" e o `NOME_EVENTO` do backend está
-      como "The EasyEffect". Os e-mails saem com nome diferente do site.
+      como "S2i Effect". Os e-mails saem com nome diferente do site.
 - [ ] **Peso das fotos**: as fotos de eventos e do local em `src/IMAGENS/` ainda somam
       ~8 MB, com PNGs de até 2 MB. Converter para JPEG q90 reduziria bastante.
 - [x] **Banner e imagem de compartilhamento** — resolvido. Ver seção *Imagens* abaixo.
