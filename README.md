@@ -186,6 +186,13 @@ apagar os dados de um inscrito conhecendo apenas o endereço dele.
 (100 e-mails/dia em conta comum) contra flood. Se o teto for atingido, **a inscrição ainda
 é gravada** — apenas os e-mails são pulados. O dado nunca se perde por causa do envio.
 
+**Telefone validado nas duas pontas.** `type="tel"` não valida nada — o navegador aceita
+letras. O `index.html` aplica uma máscara (só dígitos, formato `(65) 99999-9999`) e um
+`pattern` que bloqueia o envio incompleto; o backend repete a checagem em `normalizarTelefone()`,
+recusa o que não for um telefone com DDD (10 ou 11 dígitos, `+55` opcional) e grava sempre no
+mesmo formato. A validação do servidor é a que vale: a URL do script é pública e pode receber
+POST sem passar pelo formulário.
+
 **Honeypot.** Campo `website`, invisível para pessoas. Se vier preenchido, a requisição é
 descartada silenciosamente (responde sucesso para não ensinar o robô).
 
