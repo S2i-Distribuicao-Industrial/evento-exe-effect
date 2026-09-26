@@ -6,7 +6,7 @@ dispara e-mails automáticos de confirmação.
 
 | | |
 |---|---|
-| **Evento** | 06 de outubro de 2026, das 18h às 21h |
+| **Evento** | 06 de outubro de 2026, começando às 18h |
 | **Local** | Coco Bambu — Shopping Estação Cuiabá, Av. Miguel Sutil, 9300 - LUC 1001 |
 | **Produção** | https://takeiteasy.s2i.com.br |
 
@@ -129,23 +129,39 @@ e quebra o formulário até você atualizar o `SCRIPT_URL` no `index.html`.
 
 ---
 
-## Lembrete pré-evento
+## Contagem regressiva por e-mail
 
-`Lembretes.gs` envia aos inscritos o lembrete "faltam N dias", com o botão **Cancelar minha
-inscrição** (o mesmo fluxo de duas etapas descrito acima). O "N" é calculado a partir de
-`DATA_EVENTO_ISO` no dia do envio, então a contagem nunca sai errada.
+`Lembretes.gs` envia aos inscritos uma contagem regressiva, sempre com o botão **Cancelar minha
+inscrição** (o mesmo fluxo de duas etapas descrito acima). Os dias ficam em
+`CONFIG.DIAS_LEMBRETE`:
 
-Com o `Lembretes.gs` aberto no editor, escolha a função no menu ao lado de **Executar**.
-Não é preciso editar nada no código:
+| Dias antes | Data | Assunto |
+|---|---|---|
+| 10 | 26/09 | Lembrete S2i Effect — faltam 10 dias |
+| 7 → 2 | 29/09 → 04/10 | Lembrete S2i Effect — faltam N dias |
+| 1 | 05/10 | Lembrete S2i Effect — falta 1 dia |
+| 0 | 06/10 | S2i Effect — É hoje! (data, horário e local) |
 
-| Função | Envia para |
+Com a agenda ativa, um acionador diário roda `lembreteAutomatico` entre 9h e 10h (Cuiabá),
+confere a data e envia se for dia de lembrete. Depois do evento, ele se remove sozinho.
+
+Com o `Lembretes.gs` aberto no editor, escolha a função no menu ao lado de **Executar**:
+
+| Função | O que faz |
 |---|---|
-| `teste1_enviarParaMeuEmail` | `EMAIL_TESTE_INTERNO` (victor.alves@s2i.com.br) |
-| `teste2_enviarParaEmailPessoal` | `EMAIL_TESTE_EXTERNO` (victorfreire78965@gmail.com) |
-| `envio1_simularEmMassa` | ninguém: só lista no log quem receberia |
-| `envio2_enviarEmMassa` | todos os inscritos `Ativa` da planilha |
+| `teste1_enviarParaMeuEmail` | Lembrete de hoje só para `EMAIL_TESTE_INTERNO` |
+| `teste2_enviarParaEmailPessoal` | Lembrete de hoje só para `EMAIL_TESTE_EXTERNO` |
+| `teste3_verEmailDoDiaDoEvento` | Prévia do "É hoje!" para `EMAIL_TESTE_INTERNO` |
+| `envio1_simularHoje` | Mostra no log o calendário e quem receberia hoje (não envia) |
+| `envio2_enviarLembreteDeHoje` | Envia agora o lembrete de hoje, se hoje for dia de lembrete |
+| `agenda1_ativarContagemAutomatica` | Liga o envio automático diário |
+| `agenda2_desativarContagemAutomatica` | Desliga o envio automático |
 
-Os e-mails saem da conta que clica em **Executar**.
+Os e-mails saem da conta que executa — no automático, da conta que ativou a agenda.
+
+Cada pessoa recebe cada lembrete uma vez só: a coluna **"Lembretes enviados"** guarda quais já
+foram (ex.: `D-10 · D-7 · D-6`). O prefixo `D-` é proposital: gravar `10, 7` faria o Sheets em
+português ler `10,7` como número decimal.
 
 Os testes criam uma linha `TESTE Lembrete` na planilha, então o cancelamento é real: ao
 confirmar, a linha some de fato. O aviso de cancelamento vai para `EMAIL_MARKETING`, exceto
@@ -154,16 +170,17 @@ quando a linha cancelada é de teste (nome começando com `TESTE`), que avisa s�
 
 ### Proteções
 
-- **Sem reenvio.** Em produção, cada envio é carimbado na coluna `Lembrete enviado` (criada
-  sozinha). Rodar de novo só alcança quem ainda não recebeu — também serve para retomar uma
-  execução interrompida.
+- **Sem reenvio.** Cada lembrete é registrado na coluna `Lembretes enviados` (criada sozinha).
+  Rodar de novo — ou rodar na mão no mesmo dia do automático — só alcança quem ainda não
+  recebeu aquele lembrete. Também serve para retomar uma execução interrompida.
+- **Quem cancela para de receber**: a linha sai da planilha, então some dos próximos envios.
 - **Só `Ativa`, um por e-mail, sem testes.** Linhas `Substituída`, e-mails duplicados e linhas
   de teste esquecidas (`TESTE…`, `LINHA DE DIAGNOSTICO`, `@example.com`) são ignorados.
 - **Cota.** Aborta antes de enviar se `MailApp.getRemainingDailyQuota()` for menor que a lista
   (100/dia em conta Gmail comum, 1.500 em Workspace).
 - **E-mail de teste que é de inscrito real** aborta a execução: o cancelamento de teste
   apagaria os dados dele.
-- **Evento hoje ou passado** não envia.
+- **Depois do evento** nada é enviado, e o acionador se remove sozinho.
 - **Nada falha em silêncio.** Todo impedimento aparece como erro vermelho no log do editor.
 
 ---
