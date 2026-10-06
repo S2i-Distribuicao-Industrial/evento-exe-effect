@@ -238,38 +238,22 @@
 
     <div class="form-container">
       <form id="form" novalidate>
-        <div class="section-title"><i class="fa-solid fa-user"></i> Seus <span>dados</span></div>
+        <div class="section-title"><i class="fa-solid fa-user"></i> <span>Dados</span></div>
 
         <div class="form-group">
           <label class="field-label" for="nome">Nome completo <span class="req">*</span></label>
           <input type="text" id="nome" name="nome" required autocomplete="name" />
         </div>
-        <div class="row">
-          <div class="form-group">
-            <label class="field-label" for="empresa">Empresa <span class="req">*</span></label>
-            <input type="text" id="empresa" name="empresa" required autocomplete="organization" />
-          </div>
-          <div class="form-group">
-            <label class="field-label" for="setor">Setor <span class="req">*</span></label>
-            <input type="text" id="setor" name="setor" required placeholder="Manutenção, Automação..." />
-          </div>
-        </div>
-        <div class="row">
-          <div class="form-group">
-            <label class="field-label" for="email">E-mail <span class="req">*</span></label>
-            <input type="email" id="email" name="email" required autocomplete="email" placeholder="seuemail@empresa.com" />
-          </div>
-          <div class="form-group">
-            <label class="field-label" for="whatsapp">WhatsApp (com DDD) <span class="req">*</span></label>
-            <input type="tel" id="whatsapp" name="whatsapp" required inputmode="numeric" placeholder="(65) 99999-9999" maxlength="15" />
-          </div>
+        <div class="form-group">
+          <label class="field-label" for="empresa">Empresa <span class="req">*</span></label>
+          <input type="text" id="empresa" name="empresa" required autocomplete="organization" />
         </div>
 
         <div class="divider"></div>
         <div class="section-title"><i class="fa-solid fa-star"></i> Sua <span>avaliação</span></div>
 
         <div class="form-group">
-          <label class="field-label">De 0 a 10, qual nota você dá para o treinamento? <span class="req">*</span></label>
+          <label class="field-label">Em uma escala de 0 a 10, quão provável é que você recomende este evento para um colega de profissão? <span class="req">*</span></label>
           <div class="nps" role="radiogroup" aria-label="Nota do treinamento de 0 a 10">
             <label><input type="radio" name="nota" value="0" required /><span>0</span></label>
             <label><input type="radio" name="nota" value="1" /><span>1</span></label>
@@ -330,7 +314,6 @@
       <div id="success" class="msg success hidden">
         <i class="fa-solid fa-circle-check"></i>
         Obrigado! Avaliação enviada com sucesso.<br>
-        <small>Enviamos um e-mail de confirmação para <b id="emailConfirm"></b>.</small>
         <div class="follow">
           <p>Acompanhe as novidades da S2i no LinkedIn:</p>
           <a class="btn-linkedin" href="https://www.linkedin.com/company/s2i-distribui%C3%A7%C3%A3o-industrial" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin-in"></i> Seguir a S2i no LinkedIn</a>
@@ -357,7 +340,6 @@
     const success = document.getElementById('success');
     const errorMsg = document.getElementById('error');
     const temasContainer = document.getElementById('temas-container');
-    const whatsapp = document.getElementById('whatsapp');
 
     // Mostra/oculta temas conforme "visita"
     document.querySelectorAll('input[name="visita"]').forEach(r => r.addEventListener('change', () => {
@@ -366,15 +348,6 @@
       temasContainer.setAttribute('aria-hidden', String(!sim));
       if (!sim) document.querySelectorAll('input[name="tema"]').forEach(cb => cb.checked = false);
     }));
-
-    // Máscara WhatsApp (65) 99999-9999
-    whatsapp.addEventListener('input', () => {
-      let v = whatsapp.value.replace(/\D/g, '').slice(0, 11);
-      if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2, v.length - 4)}-${v.slice(-4)}`;
-      else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
-      else if (v.length) v = `(${v}`;
-      whatsapp.value = v;
-    });
 
     function showError(text) {
       errorMsg.textContent = text;
@@ -391,19 +364,11 @@
         if (first) first.focus();
         return;
       }
-      if (whatsapp.value.replace(/\D/g, '').length < 10) {
-        showError('Informe um WhatsApp válido com DDD.');
-        whatsapp.focus();
-        return;
-      }
 
       const fd = new FormData(form);
       const dados = new URLSearchParams({
         nome: fd.get('nome').trim(),
         empresa: fd.get('empresa').trim(),
-        setor: fd.get('setor').trim(),
-        email: fd.get('email').trim(),
-        whatsapp: fd.get('whatsapp'),
         nota: fd.get('nota'),
         melhorias: fd.get('melhorias').trim(),
         visita: fd.get('visita'),
@@ -419,7 +384,6 @@
       try {
         await fetch(SCRIPT_URL, { method: 'POST', body: dados, mode: 'no-cors' });
         loading.classList.add('hidden');
-        document.getElementById('emailConfirm').textContent = dados.get('email');
         success.classList.remove('hidden');
         form.reset();
         form.classList.add('hidden');
