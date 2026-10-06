@@ -67,3 +67,9 @@ dist/
 inscritos*
 participantes*
 *.gs
+
+# =============================================================================
+# QR codes dos crachas
+# Os nomes dos arquivos sao numeros de WhatsApp dos participantes (LGPD).
+# =============================================================================
+qrcode-cracha/
