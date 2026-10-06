@@ -8,7 +8,7 @@ dispara e-mails automáticos de confirmação.
 |---|---|
 | **Evento** | 06 de outubro de 2026, começando às 18h |
 | **Local** | Coco Bambu — Shopping Estação Cuiabá, Av. Miguel Sutil, 9300 - LUC 1001 |
-| **Produção** | https://takeiteasy.s2i.com.br |
+| **Produção** | https://seffect.s2i.com.br (o antigo `takeiteasy.s2i.com.br` segue ativo: os e-mails já enviados têm link de cancelamento nele) |
 
 ---
 
@@ -35,7 +35,7 @@ publicado como *Web App*, e a "base de dados" é uma aba de planilha.
 ```
 .
 ├── index.html          Página completa: HTML, CSS (Tailwind CDN) e JS inline
-├── cancelar.html       Página de cancelamento (takeiteasy.s2i.com.br/cancelar?id=…)
+├── cancelar.html       Página de cancelamento (seffect.s2i.com.br/cancelar?id=…)
 ├── Codigo.gs           Backend: inscrição, cancelamento e e-mails (NÃO versionado — ver abaixo)
 ├── Lembretes.gs        Backend: lembrete pré-evento + modos teste/produção (NÃO versionado)
 ├── src/
@@ -87,7 +87,7 @@ Todas as constantes ficam no objeto `CONFIG`, no topo do arquivo:
 ### Cancelamento de inscrição
 
 Os e-mails de confirmação e de lembrete trazem um botão vermelho **"Cancelar minha inscrição"**,
-que aponta para `https://takeiteasy.s2i.com.br/cancelar?id=<UUID da inscrição>`
+que aponta para `https://seffect.s2i.com.br/cancelar?id=<UUID da inscrição>`
 (`CONFIG.URL_CANCELAMENTO`). A página `cancelar.html` é estática e conversa com o Apps Script
 pelo mesmo `SCRIPT_URL` do formulário — se a implantação mudar, atualize os dois arquivos.
 
@@ -243,7 +243,7 @@ evitar que uma exportação entre no repositório por descuido.
 O site é publicado via **Cloudflare Pages**, conectado a este repositório: todo push na
 branch `main` dispara um novo deploy automaticamente.
 
-O domínio `takeiteasy.s2i.com.br` é um *custom domain* do projeto no Pages. Como a zona
+Os domínios `seffect.s2i.com.br` e `takeiteasy.s2i.com.br` são *custom domains* do projeto (Worker `evento-exe-effect`, em Domains & Routes). Não remova o antigo: os e-mails já enviados apontam para ele. Como a zona
 `s2i.com.br` está na mesma conta Cloudflare, o registro DNS e o certificado SSL são
 criados automaticamente.
 

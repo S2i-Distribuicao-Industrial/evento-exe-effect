@@ -248,6 +248,10 @@
           <label class="field-label" for="empresa">Empresa <span class="req">*</span></label>
           <input type="text" id="empresa" name="empresa" required autocomplete="organization" />
         </div>
+        <div class="form-group">
+          <label class="field-label" for="email">E-mail <span class="req">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email" placeholder="seuemail@empresa.com" />
+        </div>
 
         <div class="divider"></div>
         <div class="section-title"><i class="fa-solid fa-star"></i> Sua <span>avaliação</span></div>
@@ -314,6 +318,7 @@
       <div id="success" class="msg success hidden">
         <i class="fa-solid fa-circle-check"></i>
         Obrigado! Avaliação enviada com sucesso.<br>
+        <small>Enviamos um e-mail de confirmação para <b id="emailConfirm"></b>.</small>
         <div class="follow">
           <p>Acompanhe as novidades da S2i no LinkedIn:</p>
           <a class="btn-linkedin" href="https://www.linkedin.com/company/s2i-distribui%C3%A7%C3%A3o-industrial" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin-in"></i> Seguir a S2i no LinkedIn</a>
@@ -369,6 +374,7 @@
       const dados = new URLSearchParams({
         nome: fd.get('nome').trim(),
         empresa: fd.get('empresa').trim(),
+        email: fd.get('email').trim(),
         nota: fd.get('nota'),
         melhorias: fd.get('melhorias').trim(),
         visita: fd.get('visita'),
@@ -384,6 +390,7 @@
       try {
         await fetch(SCRIPT_URL, { method: 'POST', body: dados, mode: 'no-cors' });
         loading.classList.add('hidden');
+        document.getElementById('emailConfirm').textContent = dados.get('email');
         success.classList.remove('hidden');
         form.reset();
         form.classList.add('hidden');
