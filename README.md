@@ -109,16 +109,24 @@ O **UUID da coluna `ID` é a credencial**. Só quem recebeu o e-mail o conhece, 
 impossível de adivinhar. É por isso que o cancelamento nunca aceita e-mail como
 identificador: qualquer um poderia cancelar a inscrição alheia sabendo só o endereço.
 
-Ao confirmar, o script apaga da aba `Inscrições` a linha daquele ID **e todas as demais com
-o mesmo e-mail** (as `Substituída`, de reinscrições anteriores), e avisa o marketing
-(`EMAIL_MARKETING`, ver *Lembrete pré-evento*) — senão uma linha sumiria da planilha sem
-explicação. O aviso traz nome, e-mail, telefone, empresa e quantas inscrições ativas restaram,
-para o marketing saber quando chamar alguém da lista de espera. Sai da conta que executa o
-script (a "conta logada").
+Ao confirmar, o script **não apaga nada**: marca como `Cancelado` a linha daquele ID e as
+demais linhas `Ativa` com o mesmo e-mail (duplicados). Linhas `Substituída` ficam como estão.
+Os dados continuam na planilha para consulta futura. Em seguida, avisa o marketing
+(`EMAIL_MARKETING`, ver *Contagem regressiva por e-mail*). O aviso traz nome, e-mail, telefone,
+empresa e quantos participantes confirmados restaram, para o marketing saber quando chamar
+alguém da lista de espera. Sai da conta que executa o Web App.
 
-> ⚠️ A remoção é definitiva. Não fica registro de que a pessoa cancelou, nem de quantos
-> cancelamentos houve. Se quiser manter histórico, a alternativa é mover a linha para uma
-> aba `Cancelados` em vez de apagar.
+Status possíveis na coluna `Status`:
+
+| Status | Significado | Recebe lembretes? |
+|---|---|---|
+| `Ativa` | Inscrição válida | Sim |
+| `Substituída` | A pessoa se inscreveu de novo com o mesmo e-mail; vale a linha mais nova | Não |
+| `Cancelado` | A pessoa cancelou pelo link do e-mail | Não |
+
+Um link já usado mostra "Inscrição não encontrada" e não cancela duas vezes. Se a pessoa se
+inscrever de novo depois de cancelar, ganha uma linha `Ativa` nova e a `Cancelado` fica como
+histórico.
 
 ### Publicar alterações do backend
 
@@ -173,13 +181,18 @@ quando a linha cancelada é de teste (nome começando com `TESTE`), que avisa s�
 - **Sem reenvio.** Cada lembrete é registrado na coluna `Lembretes enviados` (criada sozinha).
   Rodar de novo — ou rodar na mão no mesmo dia do automático — só alcança quem ainda não
   recebeu aquele lembrete. Também serve para retomar uma execução interrompida.
-- **Quem cancela para de receber**: a linha sai da planilha, então some dos próximos envios.
+- **Quem cancela para de receber**: a linha vira `Cancelado`, e só linhas `Ativa` recebem.
+  O status é conferido de novo **logo antes de cada e-mail**, então quem cancela enquanto o
+  envio do dia está em andamento também não recebe.
+- **Cancelar durante o envio funciona.** O envio não segura a trava do script enquanto os
+  e-mails saem (usa uma marca própria de "envio em andamento"), então cancelamentos e
+  inscrições entre 9h e 10h não recebem "servidor ocupado".
 - **Só `Ativa`, um por e-mail, sem testes.** Linhas `Substituída`, e-mails duplicados e linhas
   de teste esquecidas (`TESTE…`, `LINHA DE DIAGNOSTICO`, `@example.com`) são ignorados.
 - **Cota.** Aborta antes de enviar se `MailApp.getRemainingDailyQuota()` for menor que a lista
   (100/dia em conta Gmail comum, 1.500 em Workspace).
 - **E-mail de teste que é de inscrito real** aborta a execução: o cancelamento de teste
-  apagaria os dados dele.
+  cancelaria a inscrição dele.
 - **Depois do evento** nada é enviado, e o acionador se remove sozinho.
 - **Nada falha em silêncio.** Todo impedimento aparece como erro vermelho no log do editor.
 
